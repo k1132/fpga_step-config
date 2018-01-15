@@ -114,7 +114,7 @@ uint16_t Size;
 uint8_t ReceiveData[4096];
 int WriteIndex;
 
-
+int fpgadata[32];
 
 
 
@@ -434,6 +434,13 @@ void EraseBulk()
 }
 /*spiflash functions by cyh 2017/7/29*/
 
+
+void fpgadata_init()
+{
+	int i;
+	for(i = 0;i<32;++i)
+		fpgadata[i] = i;
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -490,7 +497,7 @@ int main(void)
 	//for(i=0;i<10000;++i);
 	MX_SPI3_Init();
 	
-	
+	fpgadata_init();
   while (1)
   {
   /* USER CODE END WHILE */
@@ -908,7 +915,13 @@ void HandleCmd(void)
 			case 0xab:
 				memcpy(ReceiveData+RxBufferFS[0].adr,RxBufferFS[0].Bbuf,32);
 				USB_sendbyte(20);
-				break;		
+				break;	
+			case 0x33:
+				CDC_Transmit_FS((uint8_t *)(&fpgadata[RxBufferFS[0].adr%32]),4);
+				break;
+			case 0x37:
+				fpgadata[RxBufferFS[0].adr%32] = *((int *)RxBufferFS[0].Bbuf);
+				break;
 			default:
 				break;
 		}
